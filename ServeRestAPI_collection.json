@@ -1,0 +1,221 @@
+{
+	"info": {
+		"_postman_id": "e519d8ef-2b09-4abc-8b7e-5f6c2b9fd56b",
+		"name": "ServeRestAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38953393"
+	},
+	"item": [
+		{
+			"name": "CadastrarProduto",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// A variável abaixo faz uma requisição de Login.\r",
+							"const postRequest = {\r",
+							"    url: pm.environment.get(\"BasicURL\") + \"login\",\r",
+							"    method: \"POST\",\r",
+							"    body: {\r",
+							"        mode: \"raw\",\r",
+							"        options: {\r",
+							"            raw: {\r",
+							"                language: \"json\"\r",
+							"            }\r",
+							"        },\r",
+							"        raw: JSON.stringify ({\r",
+							"            email: \"fulano@qa.com\",\r",
+							"            password: \"teste\"\r",
+							"        })\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.sendRequest(postRequest, function (err, res) {\r",
+							"    let responseJson = res.json()\r",
+							"    let auth = responseJson[\"authorization\"].replace(\"Bearer \", \"\")\r",
+							"    pm.environment.set(\"ServerRestToken\", auth)\r",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 400\", function () {",
+							"    pm.expect(pm.response.code).to.equal(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.message).to.exist.and.to.be.a('string');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Message is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Content-Type header is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Validate the request body is in the expected format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.message).to.exist.and.to.be.a('string');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{ServerRestToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"nome\": \"LG K51 S\",\r\n  \"preco\": 1000,\r\n  \"descricao\": \"Celular\",\r\n  \"quantidade\": 100\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BasicURL}}produtos",
+					"host": [
+						"{{BasicURL}}produtos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ListaDeProdutos",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// A variável abaixo faz uma requisição de Login.\r",
+							"const postRequest = {\r",
+							"    url: pm.environment.get(\"BasicURL\") + \"login\",\r",
+							"    method: \"POST\",\r",
+							"    body: {\r",
+							"        mode: \"raw\",\r",
+							"        options: {\r",
+							"            raw: {\r",
+							"                language: \"json\"\r",
+							"            }\r",
+							"        },\r",
+							"        raw: JSON.stringify ({\r",
+							"            email: \"fulano@qa.com\",\r",
+							"            password: \"teste\"\r",
+							"        })\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.sendRequest(postRequest, function (err, res) {\r",
+							"    let responseJson = res.json()\r",
+							"    let auth = responseJson[\"authorization\"].split(\" \")\r",
+							"    pm.globals.set(\"ServerRestToken\", auth[1])\r",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields - quantidade and produtos\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('quantidade');",
+							"    pm.expect(responseData).to.have.property('produtos');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Each product has non-empty name, positive price, non-empty description, positive quantity, and non-empty _id\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.produtos).to.be.an('array');",
+							"",
+							"    responseData.produtos.forEach(function(product) {",
+							"        pm.expect(product.nome).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Name should not be empty\");",
+							"        pm.expect(product.preco).to.be.a('number').and.to.be.above(0, \"Price should be positive\");",
+							"        pm.expect(product.descricao).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Description should not be empty\");",
+							"        pm.expect(product.quantidade).to.be.a('number').and.to.be.above(-1, \"Quantity should be positive\");",
+							"        pm.expect(product._id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"_id should not be empty\");",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Produtos array is present and contains expected number of elements\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.produtos).to.exist.and.to.be.an('array');",
+							"    pm.expect(responseData.produtos).to.have.lengthOf.at.least(1);",
+							"});",
+							"",
+							"pm.test(\"Price is in a valid format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.produtos).to.be.an('array');",
+							"    responseData.produtos.forEach(function(produto) {",
+							"        pm.expect(produto.preco).to.be.a('number');",
+							"        pm.expect(produto.preco).to.be.at.least(0)",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BasicURL}}produtos",
+					"host": [
+						"{{BasicURL}}produtos"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
